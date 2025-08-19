@@ -90,7 +90,7 @@ using
                 repo.Network.Fetch(originRemote.Name, [], fetchOptions)
             )
 
-        AnsiConsole.markupLineInterpolated $"[green]Fetch completed successfully.[/] [grey]{DateTimeOffset.Now}[/]"
+        AnsiConsole.markupLineInterpolated $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Fetch completed successfully from [blue]{originRemote.Name}[/]."
 
         // Checkout main branch
 
@@ -108,7 +108,7 @@ using
 
         if repo.Head.CanonicalName = mainBranch.CanonicalName then
             AnsiConsole.markupLineInterpolated
-                $"[green]Already on main branch: {mainBranch.FriendlyName}.[/] [grey]{DateTimeOffset.Now}[/]"
+                $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Already on main branch: [blue]{mainBranch.FriendlyName}[/]."
         else
             AnsiConsole.status ()
             |> Status.start
@@ -116,7 +116,7 @@ using
                 (fun _ -> Commands.Checkout(repo, mainBranch) |> ignore)
 
             AnsiConsole.markupLineInterpolated
-                $"[green]Checked out branch: {mainBranch.FriendlyName}.[/] [grey]{DateTimeOffset.Now}[/]"
+                $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Checked out branch: [blue]{mainBranch.FriendlyName}[/]."
 
         // Pull latest changes
 
@@ -129,7 +129,7 @@ using
 
         if not shouldPull then
             AnsiConsole.markupLineInterpolated
-                $"[yellow]No changes to pull for branch: {mainBranch.FriendlyName}.[/] [grey]{DateTimeOffset.Now}[/]"
+                $"[grey]{DateTimeOffset.Now}[/] [yellow]✓[/] No changes to pull for branch: [blue]{mainBranch.FriendlyName}[/]."
         else
             AnsiConsole.status ()
             |> Status.start
@@ -156,13 +156,13 @@ using
                 )
 
             AnsiConsole.markupLineInterpolated
-                $"[green]Pulled changes successfully for branch: {mainBranch.FriendlyName}.[/] [grey]{DateTimeOffset.Now}[/]"
+                $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Pulled changes successfully for branch: [blue]{mainBranch.FriendlyName}[/]."
 
         // Check for orphan branches
         for localBranch in otherLocalBranches do
             if not localBranch.IsTracking then
                 AnsiConsole.markupLineInterpolated
-                    $"[yellow]Orphan branch detected: {localBranch.FriendlyName}. It is not tracking any remote branch.[/] [grey]{DateTimeOffset.Now}[/]"
+                    $"[grey]{DateTimeOffset.Now}[/] [yellow]✓[/] Orphan branch detected: [blue]{localBranch.FriendlyName}[/]. It is not tracking any remote branch."
             else
                 let trackedBranch = localBranch.TrackedBranch
 
@@ -172,12 +172,10 @@ using
 
                 if trackedBranchFound then
                     AnsiConsole.markupLineInterpolated
-                        $"[green]Branch {localBranch.FriendlyName} is tracking remote branch {trackedBranch.FriendlyName}.[/] [grey]{DateTimeOffset.Now}[/]"
+                        $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Branch [blue]{localBranch.FriendlyName}[/] is tracking remote branch [blue]{trackedBranch.FriendlyName}[/]."
                 else
-                    AnsiConsole.markupLineInterpolated
-                        $"[red]Branch {localBranch.FriendlyName} is tracking a non-existent remote branch: {trackedBranch.FriendlyName}.[/] [grey]{DateTimeOffset.Now}[/]"
-
-                    let delete = AnsiConsole.confirm (Raw "Do you want to delete this branch?")
+                    let confirmText = SpectreConsoleString.fromInterpolated $"[blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch [blue]{trackedBranch.FriendlyName}[/]. Do you want to delete this orphan branch?"
+                    let delete = AnsiConsole.confirm confirmText
 
                     if delete then
                         AnsiConsole.status ()
@@ -188,9 +186,9 @@ using
                             )
 
                         AnsiConsole.markupLineInterpolated
-                            $"[green]Deleted orphan branch: {localBranch.FriendlyName}.[/] [grey]{DateTimeOffset.Now}[/]"
+                            $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Deleted orphan branch: [blue]{localBranch.FriendlyName}[/]."
                     else
                         AnsiConsole.markupLineInterpolated
-                            $"[yellow]Skipped deletion of orphan branch: {localBranch.FriendlyName}.[/] [grey]{DateTimeOffset.Now}[/]"
+                            $"[grey]{DateTimeOffset.Now}[/] [yellow]✓[/] Skipped deletion of orphan branch: [blue]{localBranch.FriendlyName}[/]."
 
     )
