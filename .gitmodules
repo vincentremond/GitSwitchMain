@@ -1,0 +1,4 @@
+[submodule "Pinicola.FSharp"]
+	path = Pinicola.FSharp
+	url = https://github.com/vincentremond/Pinicola.FSharp
+	branch = main
