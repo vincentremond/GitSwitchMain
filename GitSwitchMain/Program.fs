@@ -182,7 +182,7 @@ using
                         |> Status.start
                             $"Deleting orphan branch: {localBranch.FriendlyName}"
                             (fun _ ->
-                                repo.Branches.Remove(localBranch)
+                                repo.Branches.Remove(localBranch.FriendlyName)
                             )
 
                         AnsiConsole.markupLineInterpolated
