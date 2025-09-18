@@ -18,7 +18,7 @@ let fixAzureRegex = Regex(@"https:\/\/(?:\w+@)?dev\.azure\.com\/(?<Org>\w+)\/")
 
 let getGitCredentials url =
 
-    let url = fixAzureRegex |> Regex.replace url @"https://${Org}.visualstudio.com/"
+    let url = url |> Regex.replace fixAzureRegex @"https://${Org}.visualstudio.com/"
     let uri = Uri(url)
     let host = uri.Host
 
@@ -90,7 +90,8 @@ using
                 repo.Network.Fetch(originRemote.Name, [], fetchOptions)
             )
 
-        AnsiConsole.markupLineInterpolated $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Fetch completed successfully from [blue]{originRemote.Name}[/]."
+        AnsiConsole.markupLineInterpolated
+            $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Fetch completed successfully from [blue]{originRemote.Name}[/]."
 
         // Checkout main branch
 
@@ -99,12 +100,18 @@ using
             "refs/heads/master"
         ]
 
-        let remoteBranches, localBranches =
-            repo.Branches |> List.ofSeq |> List.partition _.IsRemote
+        let readBranches () =
 
-        let mainBranch, otherLocalBranches =
-            localBranches
-            |> List.removeExactlyOne (fun b -> potentialMainBranches |> List.contains b.CanonicalName)
+            let remoteBranches, localBranches =
+                repo.Branches |> List.ofSeq |> List.partition _.IsRemote
+
+            let mainBranch, otherLocalBranches =
+                localBranches
+                |> List.removeExactlyOne (fun b -> potentialMainBranches |> List.contains b.CanonicalName)
+
+            (remoteBranches, mainBranch, otherLocalBranches)
+
+        let _, mainBranch, _ = readBranches ()
 
         if repo.Head.CanonicalName = mainBranch.CanonicalName then
             AnsiConsole.markupLineInterpolated
@@ -159,6 +166,8 @@ using
                 $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Pulled changes successfully for branch: [blue]{mainBranch.FriendlyName}[/]."
 
         // Check for orphan branches
+        let remoteBranches, _, otherLocalBranches = readBranches () // Re-read branches after fetch and pull
+
         for localBranch in otherLocalBranches do
             if not localBranch.IsTracking then
                 AnsiConsole.markupLineInterpolated
@@ -174,16 +183,17 @@ using
                     AnsiConsole.markupLineInterpolated
                         $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Branch [blue]{localBranch.FriendlyName}[/] is tracking remote branch [blue]{trackedBranch.FriendlyName}[/]."
                 else
-                    let confirmText = SpectreConsoleString.fromInterpolated $"[blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch [blue]{trackedBranch.FriendlyName}[/]. Do you want to delete this orphan branch?"
+                    let confirmText =
+                        SpectreConsoleString.fromInterpolated
+                            $"[blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch [blue]{trackedBranch.FriendlyName}[/]. Do you want to delete this orphan branch?"
+
                     let delete = AnsiConsole.confirm confirmText
 
                     if delete then
                         AnsiConsole.status ()
                         |> Status.start
                             $"Deleting orphan branch: {localBranch.FriendlyName}"
-                            (fun _ ->
-                                repo.Branches.Remove(localBranch.FriendlyName)
-                            )
+                            (fun _ -> repo.Branches.Remove(localBranch.FriendlyName))
 
                         AnsiConsole.markupLineInterpolated
                             $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Deleted orphan branch: [blue]{localBranch.FriendlyName}[/]."
