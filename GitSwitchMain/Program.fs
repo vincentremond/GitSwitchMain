@@ -7,7 +7,15 @@ open Pinicola.FSharp
 open Pinicola.FSharp.RegularExpressions
 open Pinicola.FSharp.SpectreConsole
 
-let currentDirectory = Directory.GetCurrentDirectory()
+let gitDirectory =
+    let currentDirectory = Directory.GetCurrentDirectory()
+
+    match (Repository.Discover(currentDirectory) |> Option.ofObj) with
+    | None ->
+        AnsiConsole.markupLine "[red]No git repository found in the current directory or its parents.[/]"
+        Environment.Exit(1)
+        failwith "Unreachable"
+    | Some dir -> dir
 
 type GitCredentials = {
     Username: string
@@ -65,7 +73,7 @@ let getGitCredentials url =
     }
 
 using
-    (new Repository(currentDirectory))
+    (new Repository(gitDirectory))
     (fun repo ->
 
         let originRemote = repo.Network.Remotes |> Seq.exactlyOne
@@ -184,8 +192,15 @@ using
                         $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Branch [blue]{localBranch.FriendlyName}[/] is tracking remote branch [blue]{trackedBranch.FriendlyName}[/]."
                 else
                     let confirmText =
+                        let trimmedTrackedName =
+                            trackedBranch.FriendlyName
+                            |> Regex.replace (Regex($@"^{trackedBranch.RemoteName}/")) ""
+
                         SpectreConsoleString.fromInterpolated
-                            $"[blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch [blue]{trackedBranch.FriendlyName}[/]. Do you want to delete this orphan branch?"
+                        <| if localBranch.FriendlyName <> trimmedTrackedName then
+                               $"[grey]{DateTimeOffset.Now}[/] [blue]?[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch [blue]{trackedBranch.FriendlyName}[/]. Do you want to delete this orphan branch?"
+                           else
+                               $"[grey]{DateTimeOffset.Now}[/] [blue]?[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch. Do you want to delete this orphan branch?"
 
                     let delete = AnsiConsole.confirm confirmText
 
