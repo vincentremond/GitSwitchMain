@@ -1,7 +1,7 @@
 STORAGE: NONE
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    FSharp.Core (9.0.303)
+    FSharp.Core (10.0.100)
     LibGit2Sharp (0.31)
       LibGit2Sharp.NativeBinaries (2.0.323) - restriction: || (>= net472) (>= net8.0)
     LibGit2Sharp.NativeBinaries (2.0.323) - restriction: || (>= net472) (>= net8.0)
