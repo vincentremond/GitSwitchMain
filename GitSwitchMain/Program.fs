@@ -22,6 +22,25 @@ type GitCredentials = {
     Password: string
 }
 
+type BranchIdentifier = | FriendlyName of string
+
+let (|IsTracking|_|) (remoteBranches: Branch list) (branch: Branch) =
+    if branch.IsTracking then
+        let trackedBranch = branch.TrackedBranch
+
+        match
+            remoteBranches
+            |> List.filter (fun b -> b.CanonicalName = trackedBranch.CanonicalName)
+        with
+        | [] -> Some None
+        | [ b ] -> Some(Some b)
+        | _ -> failwith "Multiple remote branches found with the same canonical name."
+    else
+        None
+
+let (|IsNotTracking|_|) (branch: Branch) =
+    if not branch.IsTracking then Some() else None
+
 let fixAzureRegex = Regex(@"https:\/\/(?:\w+@)?dev\.azure\.com\/(?<Org>\w+)\/")
 
 let getGitCredentials url =
@@ -174,33 +193,40 @@ using
                 $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Pulled changes successfully for branch: [blue]{mainBranch.FriendlyName}[/]."
 
         // Check for orphan branches
-        let remoteBranches, _, otherLocalBranches = readBranches () // Re-read branches after fetch and pull
 
-        for localBranch in otherLocalBranches do
-            if not localBranch.IsTracking then
-                AnsiConsole.markupLineInterpolated
-                    $"[grey]{DateTimeOffset.Now}[/] [yellow]✓[/] Orphan branch detected: [blue]{localBranch.FriendlyName}[/]. It is not tracking any remote branch."
-            else
-                let trackedBranch = localBranch.TrackedBranch
+        let rec cleanOrphanBranches (checkedBranches: BranchIdentifier list) =
 
-                let trackedBranchFound =
-                    remoteBranches
-                    |> List.exists (fun b -> b.CanonicalName = trackedBranch.CanonicalName)
+            let remoteBranches, _, otherLocalBranches = readBranches () // Re-read branches after fetch and pull
 
-                if trackedBranchFound then
-                    AnsiConsole.markupLineInterpolated
-                        $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Branch [blue]{localBranch.FriendlyName}[/] is tracking remote branch [blue]{trackedBranch.FriendlyName}[/]."
-                else
+            let otherLocalBranchesToCheck =
+                otherLocalBranches
+                |> List.filter (fun b ->
+                    not (
+                        checkedBranches
+                        |> List.exists (fun c ->
+                            match c with
+                            | FriendlyName name -> name = b.FriendlyName
+                        )
+                    )
+                )
+
+            match otherLocalBranchesToCheck with
+            | [] -> ()
+            | localBranch :: _ ->
+
+                match localBranch with
+                | IsTracking remoteBranches trackedBranch ->
                     let confirmText =
-                        let trimmedTrackedName =
-                            trackedBranch.FriendlyName
-                            |> Regex.replace (Regex($@"^{trackedBranch.RemoteName}/")) ""
-
                         SpectreConsoleString.fromInterpolated
-                        <| if localBranch.FriendlyName <> trimmedTrackedName then
-                               $"[grey]{DateTimeOffset.Now}[/] [blue]?[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch [blue]{trackedBranch.FriendlyName}[/]. Do you want to delete this orphan branch?"
-                           else
+                        <| match trackedBranch with
+                           | None ->
                                $"[grey]{DateTimeOffset.Now}[/] [blue]?[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch. Do you want to delete this orphan branch?"
+                           | Some trackedBranch ->
+                               let trimmedTrackedName =
+                                   trackedBranch.FriendlyName
+                                   |> Regex.replace (Regex($@"^{trackedBranch.RemoteName}/")) ""
+
+                               $"[grey]{DateTimeOffset.Now}[/] [blue]?[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch [blue]{trimmedTrackedName}[/]. Do you want to delete this orphan branch?"
 
                     let delete = AnsiConsole.confirm confirmText
 
@@ -215,5 +241,17 @@ using
                     else
                         AnsiConsole.markupLineInterpolated
                             $"[grey]{DateTimeOffset.Now}[/] [yellow]✓[/] Skipped deletion of orphan branch: [blue]{localBranch.FriendlyName}[/]."
+
+                | IsNotTracking ->
+
+                    AnsiConsole.markupLineInterpolated
+                        $"[grey]{DateTimeOffset.Now}[/] [yellow]✓[/] Orphan branch detected: [blue]{localBranch.FriendlyName}[/]. It is not tracking any remote branch."
+                | _ -> failwith $"Unreachable case in branch checking for branch: {localBranch.FriendlyName}"
+
+                // Continue checking other branches
+                let newCheckedBranches = FriendlyName localBranch.FriendlyName :: checkedBranches
+                cleanOrphanBranches newCheckedBranches
+
+        cleanOrphanBranches []
 
     )
