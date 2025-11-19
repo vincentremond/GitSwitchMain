@@ -109,16 +109,12 @@ using
                 fetchOptions.Prune <- true
                 fetchOptions.TagFetchMode <- TagFetchMode.All
 
-                fetchOptions.CredentialsProvider <-
-                    (fun _ _ _ ->
-                        UsernamePasswordCredentials(Username = credentials.Username, Password = credentials.Password)
-                    )
+                fetchOptions.CredentialsProvider <- (fun _ _ _ -> UsernamePasswordCredentials(Username = credentials.Username, Password = credentials.Password))
 
                 repo.Network.Fetch(originRemote.Name, [], fetchOptions)
             )
 
-        AnsiConsole.markupLineInterpolated
-            $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Fetch completed successfully from [blue]{originRemote.Name}[/]."
+        AnsiConsole.markupLineInterpolated $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Fetch completed successfully from [blue]{originRemote.Name}[/]."
 
         // Checkout main branch
 
@@ -141,16 +137,12 @@ using
         let _, mainBranch, _ = readBranches ()
 
         if repo.Head.CanonicalName = mainBranch.CanonicalName then
-            AnsiConsole.markupLineInterpolated
-                $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Already on main branch: [blue]{mainBranch.FriendlyName}[/]."
+            AnsiConsole.markupLineInterpolated $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Already on main branch: [blue]{mainBranch.FriendlyName}[/]."
         else
             AnsiConsole.status ()
-            |> Status.start
-                $"Checking out main branch: {mainBranch.FriendlyName}"
-                (fun _ -> Commands.Checkout(repo, mainBranch) |> ignore)
+            |> Status.start $"Checking out main branch: {mainBranch.FriendlyName}" (fun _ -> Commands.Checkout(repo, mainBranch) |> ignore)
 
-            AnsiConsole.markupLineInterpolated
-                $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Checked out branch: [blue]{mainBranch.FriendlyName}[/]."
+            AnsiConsole.markupLineInterpolated $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Checked out branch: [blue]{mainBranch.FriendlyName}[/]."
 
         // Pull latest changes
 
@@ -162,8 +154,7 @@ using
             | Some remoteBranch -> remoteBranch.Tip.Sha <> mainBranch.Tip.Sha
 
         if not shouldPull then
-            AnsiConsole.markupLineInterpolated
-                $"[grey]{DateTimeOffset.Now}[/] [yellow]✓[/] No changes to pull for branch: [blue]{mainBranch.FriendlyName}[/]."
+            AnsiConsole.markupLineInterpolated $"[grey]{DateTimeOffset.Now}[/] [yellow]✓[/] No changes to pull for branch: [blue]{mainBranch.FriendlyName}[/]."
         else
             AnsiConsole.status ()
             |> Status.start
@@ -173,13 +164,7 @@ using
                     pullOptions.FetchOptions <- FetchOptions()
                     pullOptions.FetchOptions.Prune <- true
 
-                    pullOptions.FetchOptions.CredentialsProvider <-
-                        (fun _ _ _ ->
-                            UsernamePasswordCredentials(
-                                Username = credentials.Username,
-                                Password = credentials.Password
-                            )
-                        )
+                    pullOptions.FetchOptions.CredentialsProvider <- (fun _ _ _ -> UsernamePasswordCredentials(Username = credentials.Username, Password = credentials.Password))
 
                     pullOptions.MergeOptions <- MergeOptions()
                     pullOptions.MergeOptions.FastForwardStrategy <- FastForwardStrategy.FastForwardOnly
@@ -189,8 +174,7 @@ using
                     Commands.Pull(repo, signature, pullOptions) |> ignore
                 )
 
-            AnsiConsole.markupLineInterpolated
-                $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Pulled changes successfully for branch: [blue]{mainBranch.FriendlyName}[/]."
+            AnsiConsole.markupLineInterpolated $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Pulled changes successfully for branch: [blue]{mainBranch.FriendlyName}[/]."
 
         // Check for orphan branches
 
@@ -215,37 +199,36 @@ using
             | localBranch :: _ ->
 
                 match localBranch with
-                | IsTracking remoteBranches trackedBranch ->
-                    let confirmText =
-                        SpectreConsoleString.fromInterpolated
-                        <| match trackedBranch with
-                           | None ->
-                               $"[grey]{DateTimeOffset.Now}[/] [blue]?[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch. Do you want to delete this orphan branch?"
-                           | Some trackedBranch ->
-                               let trimmedTrackedName =
-                                   trackedBranch.FriendlyName
-                                   |> Regex.replace (Regex($@"^{trackedBranch.RemoteName}/")) ""
-
-                               $"[grey]{DateTimeOffset.Now}[/] [blue]?[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch [blue]{trimmedTrackedName}[/]. Do you want to delete this orphan branch?"
-
-                    let delete = AnsiConsole.confirm confirmText
-
-                    if delete then
-                        AnsiConsole.status ()
-                        |> Status.start
-                            $"Deleting orphan branch: {localBranch.FriendlyName}"
-                            (fun _ -> repo.Branches.Remove(localBranch.FriendlyName))
-
-                        AnsiConsole.markupLineInterpolated
-                            $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Deleted orphan branch: [blue]{localBranch.FriendlyName}[/]."
-                    else
-                        AnsiConsole.markupLineInterpolated
-                            $"[grey]{DateTimeOffset.Now}[/] [yellow]✓[/] Skipped deletion of orphan branch: [blue]{localBranch.FriendlyName}[/]."
-
                 | IsNotTracking ->
-
                     AnsiConsole.markupLineInterpolated
                         $"[grey]{DateTimeOffset.Now}[/] [yellow]✓[/] Orphan branch detected: [blue]{localBranch.FriendlyName}[/]. It is not tracking any remote branch."
+
+                | IsTracking remoteBranches trackedBranch ->
+                    match trackedBranch with
+                    | Some remoteTrackedBranch ->
+
+                        let trimmedTrackedName =
+                            remoteTrackedBranch.FriendlyName
+                            |> Regex.replace (Regex($@"^{remoteTrackedBranch.RemoteName}/")) ""
+
+                        AnsiConsole.markupLineInterpolated
+                            $"[grey]{DateTimeOffset.Now}[/] [blue]?[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch [blue]{trimmedTrackedName}[/]. Do you want to delete this orphan branch?"
+                    | None ->
+                        let confirmText =
+                            SpectreConsoleString.fromInterpolated
+                                $"[grey]{DateTimeOffset.Now}[/] [blue]?[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch. Do you want to delete this orphan branch?"
+
+                        let delete = AnsiConsole.confirm confirmText
+
+                        if delete then
+                            AnsiConsole.status ()
+                            |> Status.start $"Deleting orphan branch: {localBranch.FriendlyName}" (fun _ -> repo.Branches.Remove(localBranch.FriendlyName))
+
+                            AnsiConsole.markupLineInterpolated $"[grey]{DateTimeOffset.Now}[/] [green]✓[/] Deleted orphan branch: [blue]{localBranch.FriendlyName}[/]."
+                        else
+                            AnsiConsole.markupLineInterpolated
+                                $"[grey]{DateTimeOffset.Now}[/] [yellow]✓[/] Skipped deletion of orphan branch: [blue]{localBranch.FriendlyName}[/]."
+
                 | _ -> failwith $"Unreachable case in branch checking for branch: {localBranch.FriendlyName}"
 
                 // Continue checking other branches
