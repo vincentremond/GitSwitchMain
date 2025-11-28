@@ -95,7 +95,13 @@ using
     (new Repository(gitDirectory))
     (fun repo ->
 
-        let originRemote = repo.Network.Remotes |> Seq.exactlyOne
+        let originRemote =
+            match repo.Network.Remotes |> List.ofSeq with
+            | [ remote ] -> remote
+            | [] -> failwith "No remotes found in the repository."
+            | remotes ->
+                let remotesStr = remotes |> List.map (fun r -> r.Name) |> String.concat ", "
+                failwithf $"Multiple remotes found {remotesStr}. Please ensure there is only one remote."
 
         let credentials = getGitCredentials originRemote.Url
 
