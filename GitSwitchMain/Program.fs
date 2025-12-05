@@ -233,8 +233,13 @@ using
                             remoteTrackedBranch.FriendlyName
                             |> Regex.replace (Regex($@"^{remoteTrackedBranch.RemoteName}/")) ""
 
-                        AnsiConsole.markupLineInterpolated
-                            $"[grey]{DateTimeOffset.Now}[/] [blue]?[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a non-existent remote branch [blue]{trimmedTrackedName}[/]. Do you want to delete this orphan branch?"
+                        if localBranch.FriendlyName = trimmedTrackedName then
+                            AnsiConsole.markupLineInterpolated
+                                $"[grey]{DateTimeOffset.Now}[/] [blue]✓[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a remote branch. [grey]Keeping it as is.[/]"
+                        else
+                            AnsiConsole.markupLineInterpolated
+                                $"[grey]{DateTimeOffset.Now}[/] [blue]✓[/] Local branch [blue]{localBranch.FriendlyName}[/] is tracking a remote branch [blue]{trimmedTrackedName}[/]. [grey]Keeping it as is.[/]"
+
                     | None ->
                         let confirmText =
                             SpectreConsoleString.fromInterpolated
