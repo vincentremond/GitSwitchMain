@@ -7,6 +7,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Properties\launchSettings.json" />
     <None Include="paket.references" />
     <Compile Include="Program.fs" />
   </ItemGroup>
