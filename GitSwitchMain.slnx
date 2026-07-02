@@ -1,0 +1,20 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/.build/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="build.ps1" />
+    <File Path="paket.dependencies" />
+    <File Path="paket.lock" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Pinicola.FSharp/">
+    <Project Path="Pinicola.FSharp/Pinicola.FSharp.SpectreConsole/Pinicola.FSharp.SpectreConsole.fsproj" />
+    <Project Path="Pinicola.FSharp/Pinicola.FSharp/Pinicola.FSharp.fsproj" />
+  </Folder>
+  <Project Path="GitSwitchMain/GitSwitchMain.fsproj" />
+</Solution>
