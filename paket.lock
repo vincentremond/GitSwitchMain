@@ -34,6 +34,6 @@ NUGET
       Spectre.Console (>= 0.57.2) - restriction: >= net10.0
 GIT
   remote: https://github.com/vincentremond/Pinicola.FSharp.git
-     (20fb0084348892d9f82e9193eda6debac6b2dec7)
+     (20fa06b7fcef4946b8c2ec2b427c3cce476e67c5)
       build: dotnet pack -o nupkg
       path: /nupkg/

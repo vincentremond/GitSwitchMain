@@ -1,9 +1,4 @@
-<Solution>
-  <Configurations>
-    <Platform Name="Any CPU" />
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
+﻿<Solution>
   <Folder Name="/.build/">
     <File Path=".editorconfig" />
     <File Path=".gitignore" />
