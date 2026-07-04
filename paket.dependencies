@@ -1,5 +1,9 @@
 source https://api.nuget.org/v3/index.json
 
 storage: none
+git https://github.com/vincentremond/Pinicola.FSharp.git main build: "dotnet pack -o nupkg", Packages: /nupkg/
+
 nuget FSharp.Core
 nuget LibGit2Sharp
+nuget Pinicola.FSharp
+nuget Pinicola.FSharp.SpectreConsole

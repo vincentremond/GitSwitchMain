@@ -1,7 +1,39 @@
 STORAGE: NONE
 NUGET
   remote: https://api.nuget.org/v3/index.json
+    CsvHelper (33.1) - restriction: >= net10.0
+    Fargo.CmdLine (1.7.5) - restriction: >= net10.0
+      FSharp.Core (>= 8.0.100) - restriction: >= netstandard2.0
+    FParsec (1.1.1) - restriction: >= net10.0
+      FSharp.Core (>= 4.3.4) - restriction: || (>= net45) (>= netstandard2.0)
     FSharp.Core (11.0.100)
     LibGit2Sharp (0.31)
       LibGit2Sharp.NativeBinaries (2.0.323) - restriction: || (>= net472) (>= net8.0)
     LibGit2Sharp.NativeBinaries (2.0.323) - restriction: || (>= net472) (>= net8.0)
+    Microsoft.Build.Tasks.Git (10.0.300) - restriction: >= net10.0
+      System.IO.Hashing (>= 10.0.8) - restriction: || (>= net472) (>= net8.0)
+    Microsoft.SourceLink.Common (10.0.300) - restriction: >= net10.0
+    Microsoft.SourceLink.GitHub (10.0.300) - restriction: >= net10.0
+      Microsoft.Build.Tasks.Git (>= 10.0.300) - restriction: || (>= net472) (>= net8.0)
+      Microsoft.SourceLink.Common (>= 10.0.300) - restriction: || (>= net472) (>= net8.0)
+      System.IO.Hashing (>= 10.0.8) - restriction: || (>= net472) (>= net8.0)
+    Spectre.Console (0.57.2) - restriction: >= net10.0
+      Spectre.Console.Ansi (>= 0.57.2) - restriction: >= netstandard2.0
+    Spectre.Console.Ansi (0.57.2) - restriction: >= net10.0
+    System.IO.Hashing (10.0.9) - restriction: >= net10.0
+  remote: paket-files/github.com/vincentremond/Pinicola.FSharp/nupkg
+    Pinicola.FSharp (1.0.0)
+      CsvHelper (>= 33.1) - restriction: >= net10.0
+      Fargo.CmdLine (>= 1.7.5) - restriction: >= net10.0
+      FParsec (>= 1.1.1) - restriction: >= net10.0
+      FSharp.Core (>= 11.0.100) - restriction: >= net10.0
+      Microsoft.SourceLink.GitHub (>= 10.0.300) - restriction: >= net10.0
+    Pinicola.FSharp.SpectreConsole (1.0.0)
+      FSharp.Core (>= 11.0.100) - restriction: >= net10.0
+      Microsoft.SourceLink.GitHub (>= 10.0.300) - restriction: >= net10.0
+      Spectre.Console (>= 0.57.2) - restriction: >= net10.0
+GIT
+  remote: https://github.com/vincentremond/Pinicola.FSharp.git
+     (20fb0084348892d9f82e9193eda6debac6b2dec7)
+      build: dotnet pack -o nupkg
+      path: /nupkg/
